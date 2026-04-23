@@ -1,107 +1,65 @@
-import conf from "../conf/conf";
-import {Client, ID, Databases, Storage, Query} from "appwrite"
-
-export class Service{
-    client = new Client();
-    databases;
-    
-    constructor(){
-        this.client
-            .setEndpoint(conf.appwriteUrl)
-            .setProject(conf.appwriteProjectId);
-        this.databases = new Databases(this.client);
-    }
-
-    
-    //bookings
-    async createBooking(hotelId, userId,bookingDate){
-        try{
-            return await this.databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteBookingsCollectionId,
-                ID.unique(),
-                {
-                    hotelId,
-                    userId,
-                    bookingDate
-                }
-            )
-
-        }catch(error){
+export class Service {
+    async createBooking(hotelId, userId, bookingDate) {
+        try {
+            const response = await fetch('http://localhost:5000/api/bookings/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hotelId, userId, bookingDate })
+            });
+            return await response.json();
+        } catch(error) {
             console.log("Create Booking error: ", error)
         }
     }
 
-
-    async deleteBooking(bookingId){
+    async deleteBooking(bookingId) {
         try {
-            await this.databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteBookingsCollectionId,
-                bookingId
-            )
-            return true
+            const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+                method: 'DELETE'
+            });
+            return response.ok;
         } catch (error) {
-            console.log("Delete Document Error ",error)
+            console.log("Delete Document Error ", error)
             return false
         }
     }
 
-
-    async getBookings(queries){
+    async getBookings(queries) {
         try {
-            return await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteBookingsCollectionId,
-                queries
-            )
+            // Simplified for microservice adaptation
+            const user = JSON.parse(localStorage.getItem('userSession'));
+            if (!user) return { documents: [] };
+            
+            const response = await fetch(`http://localhost:5000/api/bookings/my-bookings/${user.id}`);
+            const data = await response.json();
+            return { documents: data };
         } catch (error) {
-            console.log("Get all Bookings error: ",error)
+            console.log("Get all Bookings error: ", error)
         }
     }
 
-    async deleteBooking(bookingId){
+    async getHotels(queries) {
         try {
-            await this.databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteBookingsCollectionId,
-                bookingId
-            )
-            return true
-        } catch (error) {
-            console.log("Delete booking Error ",error)
-            return false
+            const response = await fetch('http://localhost:5000/api/search/trips');
+            const data = await response.json();
+            // Appwrite expected format { documents: [...] }
+            return { documents: data.map(t => ({ $id: t.id, name: t.destination, price: t.price })) };
+        } catch(error) {
+            console.log("Get hotels error", error)
         }
     }
 
-    async getHotels(queries){
-        try{
-            return await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteHotelsCollectionId,
-                queries
-            )
-        }catch(error){
-            console.log("Get hotels error",error)
+    async getHotel(hotelId) {
+        try {
+            const response = await fetch('http://localhost:5000/api/search/trips');
+            const data = await response.json();
+            const hotel = data.find(t => t.id === hotelId);
+            return hotel ? { $id: hotel.id, name: hotel.destination, price: hotel.price } : null;
+        } catch(error) {
+            console.log("Get hotel error", error)
         }
     }
-
-    async getHotel(hotelId){
-        try{
-            return await this.databases.getDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteHotelsCollectionId,
-                hotelId
-            )
-        }catch(error){
-            console.log("Get hotel error",error)
-        }
-    }
-
-
 }
 
-
-
-const service = new Service()
-export default service
+const service = new Service();
+export default service;

@@ -1,63 +1,53 @@
-import conf from "../conf/conf";
-import { Client, Account, ID } from "appwrite";
-//created a class to export, and a constructor so that it initializes whenever an object is created for better code practices
 export class AuthService {
-    client = new Client();
-    account;
-
-    constructor(){
-        this.client
-            .setEndpoint(conf.appwriteUrl)
-            .setProject(conf.appwriteProjectId);
-        this.account = new Account(this.client);
-    }
-
-    //method to be independent of appwrite
-
-    async createAccount({email,password,name}){
+    async createAccount({email, password, name}) {
         try {
-            const userAccount = await this.account.create(ID.unique(), email, password, name);
-            if(userAccount){
-                return this.account.createEmailSession(email,password);
-            }else{
-                return userAccount
-            }
+            const response = await fetch('http://localhost:5000/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, name })
+            });
+            if (!response.ok) throw new Error('Registration failed');
+            return await response.json();
         } catch (error) {
             console.log("Create Account Error", error);
         }
     }
 
-    async login({email,password}){
-        try{
-            return await this.account.createEmailSession(email,password);
-        }
-        catch(error){
+    async login({email, password}) {
+        try {
+            const response = await fetch('http://localhost:5000/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (!response.ok) throw new Error('Login failed');
+            const user = await response.json();
+            localStorage.setItem('userSession', JSON.stringify(user));
+            return user;
+        } catch(error) {
             console.log("Login Error", error);
         }
     }
 
-    async getCurrentUser(){
-        try{
-            return this.account.get()
-        }catch(error){
+    async getCurrentUser() {
+        try {
+            const user = localStorage.getItem('userSession');
+            return user ? JSON.parse(user) : null;
+        } catch(error) {
             throw error;
         }
-        return null;
     }
 
-    async logout(){
+    async logout() {
         try {
-            const session = await this.account.deleteSessions();
-            if(session)
-            localStorage.removeItem('appwriteSession');
-            return session;
+            localStorage.removeItem('userSession');
+            return true;
         } catch (error) {
             throw error;
-            
         }
     }
 }
 
 const authService = new AuthService();
 
-export default authService
+export default authService;
