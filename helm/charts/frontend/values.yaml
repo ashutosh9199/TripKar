@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: your-dockerhub-username/tripkar-frontend
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 5173

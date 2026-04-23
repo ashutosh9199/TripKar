@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: your-dockerhub-username/tripkar-search-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 5002

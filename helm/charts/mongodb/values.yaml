@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: your-dockerhub-username/tripkar-mongodb
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 27017
