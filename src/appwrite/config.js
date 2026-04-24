@@ -1,7 +1,7 @@
 export class Service {
     async createBooking(hotelId, userId, bookingDate) {
         try {
-            const response = await fetch('http://localhost:5000/api/bookings/create', {
+            const response = await fetch('/api/bookings/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ hotelId, userId, bookingDate })
@@ -14,7 +14,7 @@ export class Service {
 
     async deleteBooking(bookingId) {
         try {
-            const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+            const response = await fetch(`/api/bookings/${bookingId}`, {
                 method: 'DELETE'
             });
             return response.ok;
@@ -30,7 +30,7 @@ export class Service {
             const user = JSON.parse(localStorage.getItem('userSession'));
             if (!user) return { documents: [] };
             
-            const response = await fetch(`http://localhost:5000/api/bookings/my-bookings/${user.id}`);
+            const response = await fetch(`/api/bookings/my-bookings/${user.id}`);
             const data = await response.json();
             return { documents: data };
         } catch (error) {
@@ -40,7 +40,7 @@ export class Service {
 
     async getHotels(queries) {
         try {
-            const response = await fetch('http://localhost:5000/api/search/trips');
+            const response = await fetch('/api/search/trips');
             const data = await response.json();
             // Appwrite expected format { documents: [...] }
             return { documents: data.map(t => ({ $id: t.id, name: t.destination, price: t.price })) };
@@ -51,7 +51,7 @@ export class Service {
 
     async getHotel(hotelId) {
         try {
-            const response = await fetch('http://localhost:5000/api/search/trips');
+            const response = await fetch('/api/search/trips');
             const data = await response.json();
             const hotel = data.find(t => t.id === hotelId);
             return hotel ? { $id: hotel.id, name: hotel.destination, price: hotel.price } : null;

@@ -1,7 +1,7 @@
 export class AuthService {
     async createAccount({email, password, name}) {
         try {
-            const response = await fetch('http://localhost:5000/api/users/register', {
+            const response = await fetch('/api/users/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, name })
@@ -15,7 +15,7 @@ export class AuthService {
 
     async login({email, password}) {
         try {
-            const response = await fetch('http://localhost:5000/api/users/login', {
+            const response = await fetch('/api/users/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
