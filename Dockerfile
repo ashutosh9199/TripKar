@@ -6,10 +6,11 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Serve Stage (using Vite preview for simple serving, or nginx)
+# Serve Stage (Production static server)
 FROM node:18-alpine
 WORKDIR /app
-COPY --chown=node:node --from=builder /app ./
+RUN npm install -g serve
+COPY --chown=node:node --from=builder /app/dist ./dist
 USER node
 EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["serve", "-s", "dist", "-l", "5173"]
