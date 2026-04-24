@@ -27,12 +27,26 @@ services:
       - payment-service
       - notification-service
 
+  mongodb:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secretpassword123
+    volumes:
+      - mongodb_data:/data/db
+
   user-service:
     build:
       context: ./backend/user-service
       dockerfile: Dockerfile
     ports:
       - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb://admin:secretpassword123@mongodb:27017/tripkar?authSource=admin
+    depends_on:
+      - mongodb
 
   search-service:
     build:
@@ -61,3 +75,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5005:5005"
+
+volumes:
+  mongodb_data:
