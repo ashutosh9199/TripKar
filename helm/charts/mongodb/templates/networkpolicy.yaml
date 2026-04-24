@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "mongodb.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "mongodb.fullname" . }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: tripkar-user-service
+    - podSelector:
+        matchLabels:
+          app: tripkar-search-service
+    - podSelector:
+        matchLabels:
+          app: tripkar-booking-service
+    - podSelector:
+        matchLabels:
+          app: tripkar-payment-service
+    - podSelector:
+        matchLabels:
+          app: tripkar-notification-service
+  egress:
+  - {}
