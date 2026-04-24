@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = 5001;
@@ -7,26 +8,46 @@ const PORT = 5001;
 app.use(cors());
 app.use(express.json());
 
-// In-memory user database
-const users = [];
+// MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:secretpassword123@mongodb:27017/tripkar?authSource=admin';
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Connected to MongoDB successfully!'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-app.post('/api/users/register', (req, res) => {
-  const { email, password, name } = req.body;
-  if (users.find(u => u.email === email)) {
-    return res.status(400).json({ message: 'User already exists' });
+// User Schema
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+app.post('/api/users/register', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    const newUser = new User({ email, password, name });
+    await newUser.save();
+    res.status(201).json({ id: newUser._id, email, name });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-  const newUser = { id: Date.now().toString(), email, password, name };
-  users.push(newUser);
-  res.status(201).json(newUser);
 });
 
-app.post('/api/users/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find(u => u.email === email && u.password === password);
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+app.post('/api/users/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email, password });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    res.json({ id: user._id, email: user.email, name: user.name });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-  res.json(user);
 });
 
 app.listen(PORT, () => {
