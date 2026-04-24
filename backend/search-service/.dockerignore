@@ -1,0 +1,7 @@
+node_modules
+.git
+.env
+helm
+k8s
+Dockerfile
+README.md

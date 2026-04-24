@@ -1,7 +1,14 @@
-FROM node:18-alpine
+# Build Stage
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
+
+# Production Stage
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app ./
+USER node
 EXPOSE 5001
 CMD ["npm", "start"]
