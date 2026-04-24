@@ -1,0 +1,133 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  code-quality-and-sast:
+    name: Code Quality & SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          cd backend/user-service && npm install
+          cd ../search-service && npm install
+          cd ../booking-service && npm install
+          cd ../payment-service && npm install
+          cd ../notification-service && npm install
+          cd ../api-gateway && npm install
+
+      - name: SAST - NPM Audit
+        run: |
+          npm audit --audit-level=high || true
+          cd backend/user-service && npm audit --audit-level=high || true
+
+      - name: SCA - Snyk Vulnerability Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+  build-scan-push:
+    name: Build, Scan, & Push Docker Images
+    needs: code-quality-and-sast
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, api-gateway, user-service, search-service, booking-service, payment-service, notification-service]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set context paths
+        id: set-paths
+        run: |
+          if [ "${{ matrix.service }}" == "frontend" ]; then
+            echo "path=." >> $GITHUB_ENV
+          else
+            echo "path=backend/${{ matrix.service }}" >> $GITHUB_ENV
+          fi
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }} ${{ env.path }}
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:latest
+
+      - name: Container Scanning - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:latest
+
+  deploy:
+    name: Continuous Deployment
+    needs: build-scan-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Kubernetes Namespace
+        id: set-namespace
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "NAMESPACE=prod" >> $GITHUB_ENV
+          else
+            echo "NAMESPACE=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Setup Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.12.0'
+
+      - name: Deploy to Kubernetes via Helm
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Deploy Database
+          helm upgrade --install mongodb ./helm/charts/mongodb -n ${{ env.NAMESPACE }}
+          
+          # Deploy Backend Services
+          SERVICES=("user-service" "search-service" "booking-service" "payment-service" "notification-service" "api-gateway" "frontend")
+          for svc in "${SERVICES[@]}"; do
+            helm upgrade --install $svc ./helm/charts/$svc \
+              --set image.tag=${{ github.sha }} \
+              --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/tripkar-$svc \
+              -n ${{ env.NAMESPACE }}
+          done
