@@ -1,4 +1,4 @@
-name: DevSecOps CI/CD Pipeline
+name: DevSecOps CI Pipeline
 
 on:
   push:
@@ -87,47 +87,3 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:latest
-
-  deploy:
-    name: Continuous Deployment
-    needs: build-scan-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set Kubernetes Namespace
-        id: set-namespace
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "NAMESPACE=prod" >> $GITHUB_ENV
-          else
-            echo "NAMESPACE=dev" >> $GITHUB_ENV
-          fi
-
-      - name: Setup Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-
-      - name: Install Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'v3.12.0'
-
-      - name: Deploy to Kubernetes via Helm
-        run: |
-          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
-          
-          # Deploy Database
-          helm upgrade --install mongodb ./helm/charts/mongodb -n ${{ env.NAMESPACE }}
-          
-          # Deploy Backend Services
-          SERVICES=("user-service" "search-service" "booking-service" "payment-service" "notification-service" "api-gateway" "frontend")
-          for svc in "${SERVICES[@]}"; do
-            helm upgrade --install $svc ./helm/charts/$svc \
-              --set image.tag=${{ github.sha }} \
-              --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/tripkar-$svc \
-              -n ${{ env.NAMESPACE }}
-          done
