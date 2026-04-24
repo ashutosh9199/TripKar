@@ -10,6 +10,7 @@ export class AuthService {
             return await response.json();
         } catch (error) {
             console.log("Create Account Error", error);
+            throw error;
         }
     }
 
@@ -26,6 +27,7 @@ export class AuthService {
             return user;
         } catch(error) {
             console.log("Login Error", error);
+            throw error;
         }
     }
 
