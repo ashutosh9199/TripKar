@@ -10,7 +10,6 @@ spec:
   source:
     repoURL: 'https://argoproj.github.io/argo-helm'
     chart: argo-rollouts
-    targetRevision: {{ .Values.targetRevision }}
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: {{ .Values.environment }}

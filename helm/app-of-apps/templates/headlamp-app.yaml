@@ -10,7 +10,6 @@ spec:
   source:
     repoURL: 'https://headlamp-k8s.github.io/headlamp/'
     chart: headlamp
-    targetRevision: {{ .Values.targetRevision }}
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: {{ .Values.environment }}

@@ -10,7 +10,6 @@ spec:
   source:
     repoURL: 'https://charts.bitnami.com/bitnami'
     chart: keycloak
-    targetRevision: {{ .Values.targetRevision }}
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: {{ .Values.environment }}

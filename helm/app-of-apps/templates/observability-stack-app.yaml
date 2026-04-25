@@ -10,7 +10,6 @@ spec:
   source:
     repoURL: 'https://grafana.github.io/helm-charts'
     chart: loki-stack
-    targetRevision: {{ .Values.targetRevision }}
     helm:
       values: |
         grafana:
