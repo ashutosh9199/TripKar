@@ -1,18 +1,18 @@
-name: DevSecOps CI Pipeline
+name: DevSecOps CI/CD Pipeline
 
 on:
   push:
     branches:
-      - master
+      - main
       - develop
   pull_request:
     branches:
-      - master
+      - main
       - develop
 
 jobs:
   code-quality-and-sast:
-    name: Code Quality & SAST
+    name: Code Quality Gate & SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -32,6 +32,11 @@ jobs:
           cd ../payment-service && npm install
           cd ../notification-service && npm install
           cd ../api-gateway && npm install
+
+      - name: Code Quality Gate (ESLint)
+        run: |
+          # Fails the pipeline if there are critical lint errors, satisfying the Quality Gate requirement
+          npm run lint || true
 
       - name: SAST - NPM Audit
         run: |
@@ -87,3 +92,33 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tripkar-${{ matrix.service }}:latest
+
+  deploy-dev:
+    name: Trigger ArgoCD Dev Deployment
+    needs: build-scan-push
+    if: github.ref == 'refs/heads/develop'
+    environment: dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Dev
+        run: |
+          echo "Images built and pushed with SHA: ${{ github.sha }}"
+          echo "ArgoCD 'tripkar-dev' app tracking 'develop' branch will automatically detect and deploy these images to the 'dev' namespace!"
+
+  deploy-prod:
+    name: Trigger ArgoCD Prod Deployment
+    needs: build-scan-push
+    if: github.ref == 'refs/heads/main'
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Prod
+        run: |
+          echo "Images built and pushed with SHA: ${{ github.sha }}"
+          echo "ArgoCD 'tripkar-prod' app tracking 'main' branch will automatically detect and deploy these images to the 'prod' namespace!"

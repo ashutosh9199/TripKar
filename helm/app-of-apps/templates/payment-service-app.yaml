@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: payment-service
+  name: payment-service-{{ .Values.environment }}
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/ashutosh9199/TripKar.git'
     path: helm/charts/payment-service
-    targetRevision: HEAD
+    targetRevision: {{ .Values.targetRevision }}
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: dev
+    namespace: {{ .Values.environment }}
   syncPolicy:
     automated:
       prune: true

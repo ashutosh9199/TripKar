@@ -1,18 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-{{ .Values.environment }}
+  name: tripkar-dev
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
     repoURL: 'https://github.com/ashutosh9199/TripKar.git'
-    path: helm/charts/frontend
-    targetRevision: {{ .Values.targetRevision }}
+    path: helm/app-of-apps
+    targetRevision: develop
+    helm:
+      values: |
+        environment: dev
+        targetRevision: develop
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: {{ .Values.environment }}
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
