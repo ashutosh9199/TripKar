@@ -11,6 +11,11 @@ spec:
     repoURL: 'https://headlamp-k8s.github.io/headlamp'
     chart: headlamp
     targetRevision: 0.23.0
+    helm:
+      values: |
+        service:
+          type: NodePort
+          nodePort: 32001
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: {{ .Values.environment }}

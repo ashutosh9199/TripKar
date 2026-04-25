@@ -15,8 +15,15 @@ spec:
       values: |
         grafana:
           enabled: true
+          service:
+            type: NodePort
+            nodePort: 32003
         prometheus:
           enabled: true
+          server:
+            service:
+              type: NodePort
+              nodePort: 32004
         promtail:
           enabled: true
   destination:
