@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-mongodb
+  repository: ashutosh9199/tripkar-mongodb
   pullPolicy: IfNotPresent
   tag: "latest"
 

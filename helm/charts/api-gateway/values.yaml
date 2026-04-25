@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-api-gateway
+  repository: ashutosh9199/tripkar-api-gateway
   pullPolicy: IfNotPresent
   tag: "latest"
 

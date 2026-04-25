@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-user-service
+  repository: ashutosh9199/tripkar-user-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

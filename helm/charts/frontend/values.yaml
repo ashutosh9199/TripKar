@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-frontend
+  repository: ashutosh9199/tripkar-frontend
   pullPolicy: IfNotPresent
   tag: "latest"
 

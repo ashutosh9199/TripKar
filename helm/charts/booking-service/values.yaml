@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-booking-service
+  repository: ashutosh9199/tripkar-booking-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

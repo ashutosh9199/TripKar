@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-notification-service
+  repository: ashutosh9199/tripkar-notification-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

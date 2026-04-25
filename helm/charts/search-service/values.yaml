@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/tripkar-search-service
+  repository: ashutosh9199/tripkar-search-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
