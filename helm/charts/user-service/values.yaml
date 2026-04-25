@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-user-service
+  repository: ashutosh4782/tripkar-user-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

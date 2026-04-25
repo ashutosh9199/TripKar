@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-frontend
+  repository: ashutosh4782/tripkar-frontend
   pullPolicy: IfNotPresent
   tag: "latest"
 

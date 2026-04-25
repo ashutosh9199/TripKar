@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-api-gateway
+  repository: ashutosh4782/tripkar-api-gateway
   pullPolicy: IfNotPresent
   tag: "latest"
 

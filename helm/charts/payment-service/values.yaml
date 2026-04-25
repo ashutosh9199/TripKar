@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-payment-service
+  repository: ashutosh4782/tripkar-payment-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

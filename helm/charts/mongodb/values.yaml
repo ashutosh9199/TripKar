@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-mongodb
+  repository: ashutosh4782/tripkar-mongodb
   pullPolicy: IfNotPresent
   tag: "latest"
 

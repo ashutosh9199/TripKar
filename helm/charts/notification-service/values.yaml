@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ashutosh9199/tripkar-notification-service
+  repository: ashutosh4782/tripkar-notification-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
