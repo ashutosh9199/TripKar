@@ -17,7 +17,7 @@ Welcome to our Hotel Booking Website! This platform offers a convenient way to e
 
 ## Contributors
 
-- Anand Raj
+- Ashutosh Kumar
 
 Feel free to contribute, report issues, or suggest improvements!
 
